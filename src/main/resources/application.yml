@@ -1,0 +1,25 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 5GB
+  security:
+    user:
+      name: admin
+      roles: admin
+      password: 123456
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+# 日志相关的配置，还有些问题，后续要改成xml的方式来配置.
+logging:
+  file:
+    name: logs/windows-manager.log
+  level:
+    root: info
+    org:
+      apache: error
+      springframework: error
+server:
+  port: 1120

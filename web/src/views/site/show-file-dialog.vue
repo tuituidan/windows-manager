@@ -1,0 +1,190 @@
+<template>
+  <el-dialog
+    title="部署文件管理"
+    :visible.sync="visible"
+    append-to-body
+    :close-on-click-modal="false"
+    width="800px">
+    <div>
+      <div style="padding-bottom: 15px">当前上传路径：{{ parentPath }}</div>
+      <el-row>
+        <el-col :span="2.5">
+          <el-tooltip content="上传zip压缩包并自动解压文件">
+            <el-upload :action="fileUploadUrl"
+                       :data="{zip:true, parentPath:parentPath}"
+                       :show-file-list="false"
+                       :on-success="uploadSuccess">
+              <el-button size="mini" type="success" plain>上传压缩包</el-button>
+            </el-upload>
+          </el-tooltip>
+        </el-col>
+        <el-col :span="2.5" :offset="1">
+          <el-tooltip content="直接替换上传文件">
+            <el-upload :action="fileUploadUrl"
+                       :data="{parentPath:parentPath}"
+                       :show-file-list="false"
+                       :on-success="uploadSuccess"
+                       multiple>
+              <el-button size="mini" type="success" plain>上传文件</el-button>
+            </el-upload>
+          </el-tooltip>
+        </el-col>
+        <el-col :span="2.5" :offset="1">
+          <el-tooltip content="勾选文件进行删除">
+            <el-button type="danger" size="mini" plain @click="fileDeleteHandler">文件删除</el-button>
+          </el-tooltip>
+        </el-col>
+        <el-col :span="2.5" :offset="1">
+          <el-button type="primary" size="mini" plain @click="refreshTree">重新加载</el-button>
+        </el-col>
+      </el-row>
+      <el-row style="margin-top: 10px">
+        <el-col :span="23">
+          <el-input size="small"
+                    placeholder="输入关键字进行过滤"
+                    suffix-icon="el-icon-search"
+                    v-model="filterText">
+          </el-input>
+        </el-col>
+        <el-col :span="1">
+          <el-tooltip content="当前为懒加载树，未展开的节点无法搜索到">
+            <i class="el-icon-warning-outline"></i>
+          </el-tooltip>
+        </el-col>
+      </el-row>
+      <el-tree ref="fileTree"
+               :props="props"
+               highlight-current
+               show-checkbox
+               node-key="path"
+               :load="loadNode"
+               @current-change="treeCurrentChange"
+               :filter-node-method="treeFilterNode"
+               lazy>
+        <div slot-scope="{ node, data }" style="display: flex;width: 100%;justify-content: space-between">
+          <el-link :icon="node.isLeaf?'el-icon-document':'el-icon-folder'"
+                   :underline="false">{{ node.label }}
+          </el-link>
+          <div>
+            <span v-if="node.isLeaf" v-text="data.fileSize" style="padding-right: 10px"></span>
+            <span v-if="node.isLeaf" v-text="data.lastModifyTime" style="padding-right: 10px"></span>
+            <el-button v-if="node.isLeaf"
+                       type="text" size="small"
+                       @click="showFileHandler(data)">查看
+            </el-button>
+            <el-button type="text"
+                       size="small"
+                       @click="downloadHander(data)">下载
+            </el-button>
+          </div>
+        </div>
+      </el-tree>
+    </div>
+  </el-dialog>
+</template>
+
+<script>
+export default {
+  name: "show-file-dialog",
+  data: function () {
+    return {
+      visible: false,
+      siteId: '',
+      rootNode: null,
+      parentPath: '',
+      rootPath: '',
+      filterText: '',
+      props: {
+        isLeaf: 'leaf'
+      },
+      fileUploadUrl: `${process.env.VUE_APP_BASE_API}/api/v1/file/actions/upload`,
+    }
+  },
+  watch: {
+    filterText(val) {
+      this.$refs.fileTree.filter(val);
+    }
+  },
+  methods: {
+    treeCurrentChange(data) {
+      if (data.leaf) {
+        this.parentPath = data.path.substring(0, data.path.lastIndexOf('\\'));
+      } else {
+        this.parentPath = data.path;
+      }
+    },
+    treeFilterNode(value, data) {
+      if (!value) return true;
+      return data.label.toLowerCase().indexOf(value.toLowerCase()) !== -1;
+    },
+    open(row) {
+      this.siteId = row.id;
+      this.rootPath = row.physicalPath;
+      this.visible = true;
+      this.refreshTree();
+    },
+    loadNode(node, resolve) {
+      if (node.level === 0) {
+        this.rootNode = node;
+      }
+      const path = node.data ? encodeURIComponent(node.data.path) : '';
+      this.$http.get(`/api/v1/site/files?rootPath=${encodeURIComponent(this.rootPath)}&path=${path}`)
+        .then(res => {
+          return resolve(res);
+        })
+    },
+    refreshTree() {
+      this.reloadTree();
+      this.parentPath = this.rootPath;
+    },
+    reloadTree() {
+      if (this.rootNode) {
+        this.rootNode.loaded = false;
+        this.rootNode.expand();
+      }
+    },
+    uploadSuccess() {
+      this.$modal.msgSuccess('上传成功');
+      this.reloadTree();
+    },
+    fileDeleteHandler() {
+      const nodes = this.$refs.fileTree.getCheckedNodes();
+      if (nodes.length <= 0) {
+        this.$modal.msgWarning('请勾选文件进行删除');
+        return;
+      }
+      this.$http.post('/api/v1/file/delete', nodes.map(item => item.path))
+        .then(() => {
+          this.$modal.msgSuccess('删除成功');
+          this.reloadTree();
+        })
+        .catch(err => {
+          console.log(err)
+        });
+    },
+    downloadHander(data) {
+      window.open(`${process.env.VUE_APP_BASE_API}/api/v1/file/action/download?path=${encodeURIComponent(data.path)}`);
+    },
+    showFileHandler(data) {
+      const url = this.$router.resolve({path: `/show-file/${encodeURIComponent(data.path)}`})
+      window.open(url.href, '_blank')
+    },
+  }
+}
+</script>
+
+<style scoped lang="scss">
+.el-tree {
+  background-color: #f5f5f5;
+  padding-right: 8px;
+  margin-top: 15px;
+  height: 510px;
+  overflow: auto
+}
+
+.el-icon-warning-outline {
+  margin: 6px;
+  font-size: 20px;
+  color: #2d8cf0;
+}
+</style>
