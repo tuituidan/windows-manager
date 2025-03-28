@@ -86,10 +86,9 @@
 <script>
 export default {
   name: "show-file-dialog",
-  data: function () {
+  data() {
     return {
       visible: false,
-      siteId: '',
       rootNode: null,
       parentPath: '',
       rootPath: '',
@@ -117,9 +116,8 @@ export default {
       if (!value) return true;
       return data.label.toLowerCase().indexOf(value.toLowerCase()) !== -1;
     },
-    open(row) {
-      this.siteId = row.id;
-      this.rootPath = row.physicalPath;
+    open(path) {
+      this.rootPath = path;
       this.visible = true;
       this.refreshTree();
     },

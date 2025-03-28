@@ -12,6 +12,7 @@
     <el-table stripe
               border
               size="medium"
+              v-loading="loading"
               :data="searchDatas">
       <el-table-column label="序号" align="center" type="index" width="55"></el-table-column>
       <el-table-column prop="siteName" label="网站"></el-table-column>
@@ -44,22 +45,29 @@
         <template slot-scope="scope">
           <el-button type="text" size="small"
                      v-if="scope.row.siteState==='Stopped'"
-                     @click="siteState(scope.row.id, 'start')">启动网站</el-button>
+                     @click="siteState(scope.row.id, 'start')">启动网站
+          </el-button>
           <el-button type="text" size="small"
-                     v-else @click="siteState(scope.row.id, 'stop')">停止网站</el-button>
+                     v-else @click="siteState(scope.row.id, 'stop')">停止网站
+          </el-button>
           <el-button type="text" size="small"
-                     @click="siteState(scope.row.id, 'restart')">重启网站</el-button>
+                     @click="siteState(scope.row.id, 'restart')">重启网站
+          </el-button>
 
           <el-button type="text" size="small"
                      v-if="scope.row.apppoolState==='Stopped'"
-                     @click="apppoolState(scope.row.id, 'start')">启动应用池</el-button>
+                     @click="apppoolState(scope.row.id, 'start')">启动应用池
+          </el-button>
           <el-button type="text" size="small"
-                     v-else @click="apppoolState(scope.row.id, 'stop')">停止应用池</el-button>
+                     v-else @click="apppoolState(scope.row.id, 'stop')">停止应用池
+          </el-button>
           <el-button type="text" size="small"
-                     @click="apppoolState(scope.row.id, 'recycle')">回收应用池</el-button>
+                     @click="apppoolState(scope.row.id, 'recycle')">回收应用池
+          </el-button>
 
           <el-button type="text" size="small"
-                     @click="showFile(scope.row)">管理</el-button>
+                     @click="showFile(scope.row)">管理
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -74,8 +82,9 @@ export default {
   components: {
     'show-file-dialog': () => import('@/views/site/show-file-dialog'),
   },
-  data(){
+  data() {
     return {
+      loading: false,
       keywords: '',
       searchDatas: [],
       datas: [],
@@ -86,6 +95,7 @@ export default {
   },
   methods: {
     init() {
+      this.loading = true;
       this.$http.get('/api/v1/site')
         .then(res => {
           this.searchDatas = this.datas = res;
@@ -94,6 +104,9 @@ export default {
         .catch(err => {
           console.error(err.response);
           this.$modal.msgError(err.response.data.message);
+        })
+        .finally(() => {
+          this.loading = false;
         })
     },
     searchHandler() {
@@ -127,7 +140,7 @@ export default {
         })
     },
     showFile(row) {
-      this.$refs.showFileDialog.open(row);
+      this.$refs.showFileDialog.open(row.physicalPath);
     },
   }
 }
@@ -136,6 +149,7 @@ export default {
 <style scoped lang="scss">
 .search-panel {
   margin-bottom: 20px;
+
   .el-input {
     width: 40%;
   }

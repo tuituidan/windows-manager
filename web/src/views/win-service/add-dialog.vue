@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <el-dialog
+    title="添加/移除服务"
+    :visible.sync="visible"
+    append-to-body
+    :close-on-click-modal="false"
+    width="1000px">
     <div class="search-panel">
       <el-input suffix-icon="el-icon-search"
                 placeholder="输入服务名称或描述进行搜索..."
@@ -8,17 +13,22 @@
                 v-model.trim="keywords"
                 @input="searchHandler">
       </el-input>
-      <el-button type="primary" icon="el-icon-plus" @click="openAddDialog">添加/移除服务</el-button>
+      <el-button type="primary" @click="saveHandler">保 存</el-button>
     </div>
     <el-table stripe
               border
-              size="medium"
               v-loading="loading"
+              :max-height="600"
+              ref="dataTable"
+              size="medium"
+              @select="selectRowHandler"
               :data="searchDatas">
+      <el-table-column align="center" type="selection" width="55"></el-table-column>
       <el-table-column label="序号" align="center" type="index" width="55"></el-table-column>
       <el-table-column prop="DisplayName" label="服务名称" show-overflow-tooltip></el-table-column>
       <el-table-column prop="Description" label="描述" show-overflow-tooltip></el-table-column>
       <el-table-column prop="PathName" label="执行文件路径" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="PathName2" label="执行文件路径2" show-overflow-tooltip></el-table-column>
       <el-table-column prop="StartMode" align="center" label="启动类型" show-overflow-tooltip width="100">
         <template slot-scope="scope">
           <span v-text="startMode[scope.row.StartMode] || scope.row.StartMode"></span>
@@ -30,40 +40,20 @@
           <el-tag type="success" effect="dark" size="small" v-else>已启动</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="120">
-        <template slot-scope="scope">
-          <el-button type="text" size="small"
-                     v-if="scope.row.State==='Stopped'"
-                     @click="serviceState(scope.row.Name, 'start')">启动
-          </el-button>
-          <el-button type="text" size="small"
-                     v-else @click="serviceState(scope.row.Name, 'stop')">停止
-          </el-button>
-          <el-button v-if="scope.row.PathName" type="text" size="small"
-                     @click="showFileDialog(scope.row)">管理
-          </el-button>
-        </template>
-      </el-table-column>
     </el-table>
-    <add-dialog ref="refAddDialog" @refresh="init"></add-dialog>
-    <show-file-dialog ref="refShowFileDialog"></show-file-dialog>
-  </div>
+  </el-dialog>
 </template>
 
 <script>
-
 export default {
-  name: "index",
-  components: {
-    'add-dialog': () => import('./add-dialog.vue'),
-    'show-file-dialog': () => import('@/views/site/show-file-dialog'),
-  },
+  name: "show-file-dialog",
   data() {
     return {
       loading: false,
+      visible: false,
       keywords: '',
       searchDatas: [],
-      datas: [],
+      selectedItems: [],
       startMode: {
         'Auto': '自动',
         'Manual': '手动',
@@ -71,15 +61,26 @@ export default {
       },
     }
   },
-  mounted() {
-    this.init();
-  },
   methods: {
-    init() {
+    open() {
+      this.visible = true;
       this.loading = true;
-      this.$http.get('/api/v1/win-service')
+      this.$http.get('/api/v1/win-service/all')
         .then(res => {
-          this.searchDatas = this.datas = res;
+          this.datas = [];
+          for (const item of res) {
+            if (item.PathName) {
+              const path = item.PathName.substring(0, item.PathName.indexOf('.exe'));
+              if (path) {
+                item.PathName2 = path.substring(0, path.lastIndexOf('\\'));
+              } else {
+                item.PathName2 = item.PathName.substring(0, item.PathName.lastIndexOf('\\'));
+              }
+            }
+            this.datas.push(item);
+          }
+          this.searchDatas = this.datas;
+          this.selectedItems = this.searchDatas.filter(it => it.selected).map(it => it.Name);
           this.searchHandler();
         })
         .catch(err => {
@@ -93,10 +94,21 @@ export default {
     searchHandler() {
       if (!this.keywords) {
         this.searchDatas = this.datas;
+        this.tableSelection();
         return;
       }
       this.searchDatas = this.datas.filter(item =>
         this.filterField(item.DisplayName) || this.filterField(item.Description))
+      this.tableSelection();
+    },
+    tableSelection() {
+      this.$nextTick(() => {
+        const selections = this.searchDatas.filter(it => this.selectedItems.includes(it.Name))
+        for (let it of selections) {
+          this.$refs.dataTable.toggleRowSelection(it, true);
+        }
+      })
+
     },
     filterField(txt) {
       if (!txt) {
@@ -104,47 +116,40 @@ export default {
       }
       return txt.toLocaleLowerCase().includes(this.keywords.toLocaleLowerCase())
     },
-    serviceState(Name, state) {
-      this.$http.patch(`/api/v1/win-service/${window.btoa(Name)}/actions/${state}`)
+    selectRowHandler(selection, row) {
+      if (selection.map(it => it.Name).includes(row.Name)) {
+        this.selectedItems.push(row.Name)
+      } else {
+        this.selectedItems.splice(this.selectedItems.indexOf(row.Name), 1)
+      }
+    },
+    saveHandler() {
+      this.$http.post(`/api/v1/win-service`, this.selectedItems)
         .then(() => {
-          this.$modal.msgSuccess('执行成功');
-          this.init();
+          this.$modal.msgSuccess('保存成功');
+          this.$emit('refresh');
+          this.visible = false;
         })
         .catch(err => {
           console.error(err.response);
           this.$modal.msgError(err.response.data.message);
         })
     },
-    openAddDialog() {
-      this.$refs.refAddDialog.open();
-    },
-    showFileDialog(row) {
-      if (!row.PathName) {
-        return
-      }
-      let path = row.PathName.substring(0, row.PathName.indexOf('.exe'));
-      if (path) {
-        path = path.substring(0, path.lastIndexOf('\\'));
-      } else {
-        path = row.PathName.substring(0, row.PathName.lastIndexOf('\\'));
-      }
-      if (!path) {
-        return;
-      }
-      this.$refs.refShowFileDialog.open(path);
-    },
   }
 }
 </script>
 
 <style scoped lang="scss">
+.el-table {
+  margin-top: 15px;
+}
+
 .search-panel {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
 
   .el-input {
-    width: 40%;
+    width: 500px;
   }
 }
 </style>
