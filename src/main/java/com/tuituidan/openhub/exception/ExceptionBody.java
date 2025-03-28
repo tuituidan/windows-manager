@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 /**
  * ExceptionBody.
  *
- * @author zhujunhan
+ * @author tuituidan
  * @version 1.0
  * @date 2025-03-28
  */

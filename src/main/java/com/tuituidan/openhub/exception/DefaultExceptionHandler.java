@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 /**
  * DefaultExceptionHandler.
  *
- * @author zhujunhan
+ * @author tuituidan
  * @version 1.0
  * @date 2025-03-28
  */

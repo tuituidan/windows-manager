@@ -1,6 +1,8 @@
 package com.tuituidan.openhub.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.util.StringExtUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -8,23 +10,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
  * WindowsService.
  *
- * @author zhujunhan
+ * @author tuituidan
  * @version 1.0
  * @date 2025-02-08
  */
 @Service
 @Slf4j
 public class WindowsService {
+
+    @Resource
+    private AppPropertiesConfig appPropertiesConfig;
 
     /**
      * getNames
@@ -33,7 +40,7 @@ public class WindowsService {
      */
     public List<String> getNames() {
         try {
-            File file = new File(System.getProperty("user.dir") + "/win-service.ini");
+            File file = getConfigFile();
             if (file.exists()) {
                 return FileUtils.readLines(file, StandardCharsets.UTF_8);
             }
@@ -51,36 +58,20 @@ public class WindowsService {
      */
     public List<JSONObject> selectList(List<String> names) {
         List<JSONObject> list = new ArrayList<>();
-        String where = "";
-        if (CollectionUtils.isNotEmpty(names)) {
-            where = "where \"" + names.stream().map(name -> "Name='" + name + "'")
-                    .collect(Collectors.joining(" OR ")) + "\"";
-        }
-        String cols = "Name,DisplayName,Description,PathName,StartMode,State,StartName";
-        String cmd = "wmic service " + where + " get " + cols + " /format:list";
-        try {
-            Process process = new ProcessBuilder("cmd", "/c", cmd)
-                    .redirectErrorStream(true).start();
-            String result = IOUtils.toString(process.getInputStream(), "GBK");
-            // 有些描述自带换行符，先把两个替换成一个换行，再以换行分割
-            String[] lines = result.replace("\r\r\n\r\r\n", "\r\r\n").split("\r\r\n");
-            List<String> tmpList = new ArrayList<>();
-            for (String line : lines) {
-                if (StringUtils.isNotBlank(line)) {
-                    tmpList.add(line);
-                    continue;
-                }
-                if (CollectionUtils.isEmpty(tmpList)) {
-                    continue;
-                }
-                list.add(buildData(tmpList));
-                tmpList.clear();
+        String[] lines = getWinService(names);
+        List<String> tmpList = new ArrayList<>();
+        for (String line : lines) {
+            if (StringUtils.isNotBlank(line)) {
+                tmpList.add(line);
+                continue;
             }
             if (CollectionUtils.isNotEmpty(tmpList)) {
                 list.add(buildData(tmpList));
+                tmpList.clear();
             }
-        } catch (Exception ex) {
-            log.error("", ex);
+        }
+        if (CollectionUtils.isNotEmpty(tmpList)) {
+            list.add(buildData(tmpList));
         }
         if (CollectionUtils.isEmpty(names)) {
             // 表示查所有，就是要新增服务，所以要过滤掉已存在的
@@ -95,6 +86,54 @@ public class WindowsService {
             }
         }
         return list;
+    }
+
+    /**
+     * add
+     *
+     * @param names names
+     * @throws IOException ex
+     */
+    public void add(List<String> names) throws IOException {
+        FileUtils.writeLines(getConfigFile(), names);
+    }
+
+    /**
+     * 修改状态
+     *
+     * @param name name
+     * @param state 状态
+     */
+    public void changeState(String name, String state) {
+        String cmd = StringExtUtils.format(appPropertiesConfig.getStartWinService(), state, name);
+        try {
+            Process process = new ProcessBuilder("cmd", "/c", cmd)
+                    .redirectErrorStream(true).start();
+            process.waitFor();
+        } catch (InterruptedException | IOException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalArgumentException("操作异常", ex);
+        }
+    }
+
+    private String[] getWinService(List<String> names) {
+        String where = "";
+        if (CollectionUtils.isNotEmpty(names)) {
+            where = StringExtUtils.format(appPropertiesConfig.getListWinServiceWhere(),
+                    names.stream().map(name -> "Name='" + name + "'")
+                            .collect(Collectors.joining(" OR ")));
+        }
+        String cmd = StringExtUtils.format(appPropertiesConfig.getListWinService(), where);
+        try {
+            Process process = new ProcessBuilder("cmd", "/c", cmd)
+                    .redirectErrorStream(true).start();
+            String result = IOUtils.toString(process.getInputStream(), "GBK");
+            // 有些描述自带换行符，先把两个替换成一个换行，再以换行分割
+            return result.replace("\r\r\n\r\r\n", "\r\r\n").split("\r\r\n");
+        } catch (Exception ex) {
+            log.error("", ex);
+        }
+        return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 
     private JSONObject buildData(List<String> tmpList) {
@@ -112,31 +151,8 @@ public class WindowsService {
         return data;
     }
 
-    /**
-     * add
-     *
-     * @param names names
-     * @throws IOException ex
-     */
-    public void add(List<String> names) throws IOException {
-        File file = new File(System.getProperty("user.dir") + "/win-service.ini");
-        FileUtils.writeLines(file, names);
-    }
-
-    /**
-     * 修改状态
-     *
-     * @param name name
-     * @param state 状态
-     */
-    public void changeState(String name, String state) {
-        try {
-            Process process = new ProcessBuilder("cmd", "/c", "net " + state + " \"" + name + "\"")
-                    .redirectErrorStream(true).start();
-            process.waitFor();
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("操作异常", ex);
-        }
+    private File getConfigFile() {
+        return new File(System.getProperty("user.dir") + "/win-service.ini");
     }
 
 }

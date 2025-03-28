@@ -17,7 +17,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * AppConfig.
  *
- * @author zhujunhan
+ * @author tuituidan
  * @version 1.0
  * @date 2025-03-27
  */
