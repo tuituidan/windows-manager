@@ -18,10 +18,10 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app")
 public class AppPropertiesConfig {
 
-    private String startWinService;
+    private String cmdStartService;
 
-    private String listWinService;
+    private String cmdListService;
 
-    private String listWinServiceWhere;
+    private String cmdListServiceWhere;
 
 }

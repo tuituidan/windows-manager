@@ -48,7 +48,7 @@ public class WindowsController {
      * @return List
      */
     @GetMapping
-    public List<JSONObject> selectList() throws IOException {
+    public List<JSONObject> selectList() {
         List<String> names = windowsService.getNames();
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();

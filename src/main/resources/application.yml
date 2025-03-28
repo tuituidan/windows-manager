@@ -1,4 +1,3 @@
-
 spring:
   servlet:
     multipart:
@@ -16,6 +15,8 @@ spring:
     default-property-inclusion: non_null
   thymeleaf:
     cache: false
+  application:
+    name: Windows服务管理
 # 日志相关的配置，还有些问题，后续要改成xml的方式来配置.
 logging:
   file:
@@ -28,6 +29,9 @@ logging:
 server:
   port: 1111
 app:
-  start-win-service: net {} "{}"
-  list-win-service: wmic service {} get Name,DisplayName,Description,PathName,StartMode,State,StartName /format:list
-  list-win-service-where: where "{}"
+  cmd-start-service: net {} "{}"
+  cmd-list-service: wmic service get Name,DisplayName,Description,PathName,StartMode,State,StartName /format:list
+  cmd-list-service-where: wmic service where "{}" get Name,DisplayName,Description,PathName,StartMode,State,StartName /format:list
+
+project:
+  version: @project.version@

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 public class WindowsService {
 
     @Resource
-    private AppPropertiesConfig appPropertiesConfig;
+    private AppPropertiesConfig appProperties;
 
     /**
      * getNames
@@ -75,12 +75,12 @@ public class WindowsService {
         }
         if (CollectionUtils.isEmpty(names)) {
             // 表示查所有，就是要新增服务，所以要过滤掉已存在的
-            List<String> strs = getNames();
-            if (CollectionUtils.isEmpty(strs)) {
+            List<String> existNames = getNames();
+            if (CollectionUtils.isEmpty(existNames)) {
                 return list;
             }
             for (JSONObject item : list) {
-                if (strs.contains(item.getString("Name"))) {
+                if (existNames.contains(item.getString("Name"))) {
                     item.put("selected", true);
                 }
             }
@@ -105,7 +105,7 @@ public class WindowsService {
      * @param state 状态
      */
     public void changeState(String name, String state) {
-        String cmd = StringExtUtils.format(appPropertiesConfig.getStartWinService(), state, name);
+        String cmd = StringExtUtils.format(appProperties.getCmdStartService(), state, name);
         try {
             Process process = new ProcessBuilder("cmd", "/c", cmd)
                     .redirectErrorStream(true).start();
@@ -117,19 +117,19 @@ public class WindowsService {
     }
 
     private String[] getWinService(List<String> names) {
-        String where = "";
+        String cmd = appProperties.getCmdListService();
         if (CollectionUtils.isNotEmpty(names)) {
-            where = StringExtUtils.format(appPropertiesConfig.getListWinServiceWhere(),
+            cmd = StringExtUtils.format(appProperties.getCmdListServiceWhere(),
                     names.stream().map(name -> "Name='" + name + "'")
                             .collect(Collectors.joining(" OR ")));
         }
-        String cmd = StringExtUtils.format(appPropertiesConfig.getListWinService(), where);
         try {
             Process process = new ProcessBuilder("cmd", "/c", cmd)
                     .redirectErrorStream(true).start();
             String result = IOUtils.toString(process.getInputStream(), "GBK");
             // 有些描述自带换行符，先把两个替换成一个换行，再以换行分割
-            return result.replace("\r\r\n\r\r\n", "\r\r\n").split("\r\r\n");
+            String splitStr = "\r\r\n";
+            return result.replace(splitStr + splitStr, splitStr).split(splitStr);
         } catch (Exception ex) {
             log.error("", ex);
         }
@@ -141,11 +141,7 @@ public class WindowsService {
         for (String str : tmpList) {
             String[] split = str.split("=");
             if (split.length == 2) {
-                String value = split[1];
-                if (StringUtils.startsWith(value, "\"")) {
-                    value = StringUtils.strip(value, "\"");
-                }
-                data.put(split[0], value);
+                data.put(split[0], StringUtils.strip(split[1], "\""));
             }
         }
         return data;
