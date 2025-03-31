@@ -9,6 +9,11 @@ IIS说明见[github](https://github.com/tuituidan/iis-manager)、[gitee](https:/
 
 windows服务管理，通过windows命令获取所有windows服务，通过勾选来添加自己需要默认展示的服务，在线操作服务的启停及文件管理
 
+### 后续计划
+
+- 更方便的文件管理，如复制粘贴上传，在线解压
+- 文件查看支持代码高亮，在线编辑
+
 #### 演示图
 
 IIS在线管理
