@@ -1,6 +1,12 @@
 # windows-manager
 windows本地服务在线管理，包括IIS和Windows服务
 
+代码地址：
+
+gitee：[https://gitee.com/tuituidan/windows-manager](https://gitee.com/tuituidan/windows-manager)
+
+github：[https://github.com/tuituidan/windows-manager](https://github.com/tuituidan/windows-manager)
+
 ### 简介
 
 扩展自【在线IIS管理】一开始只做了IIS在线管理，但考虑很多windows服务也是本地管理，缺少在线管理，所以一并做了，由于命名问题，所以新开了一个仓库。
@@ -8,6 +14,10 @@ windows本地服务在线管理，包括IIS和Windows服务
 IIS说明见[github](https://github.com/tuituidan/iis-manager)、[gitee](https://gitee.com/tuituidan/iis-manager)
 
 windows服务管理，通过windows命令获取所有windows服务，通过勾选来添加自己需要默认展示的服务，在线操作服务的启停及文件管理
+
+### license
+
+100%开源，MIT协议，可自由修改
 
 ### 后续计划
 
