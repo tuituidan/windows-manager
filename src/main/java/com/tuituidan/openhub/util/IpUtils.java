@@ -43,8 +43,7 @@ public class IpUtils {
                 while (inetAddrs.hasMoreElements()) {
                     InetAddress inetAddr = inetAddrs.nextElement();
                     if (isValidAddress(inetAddr)) {
-                        localIp = inetAddr.getHostAddress();
-                        break;
+                        return inetAddr.getHostAddress();
                     }
                 }
             }

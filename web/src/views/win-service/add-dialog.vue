@@ -28,7 +28,6 @@
       <el-table-column prop="DisplayName" label="服务名称" show-overflow-tooltip></el-table-column>
       <el-table-column prop="Description" label="描述" show-overflow-tooltip></el-table-column>
       <el-table-column prop="PathName" label="执行文件路径" show-overflow-tooltip></el-table-column>
-      <el-table-column prop="PathName2" label="执行文件路径2" show-overflow-tooltip></el-table-column>
       <el-table-column prop="StartMode" align="center" label="启动类型" show-overflow-tooltip width="100">
         <template slot-scope="scope">
           <span v-text="startMode[scope.row.StartMode] || scope.row.StartMode"></span>
@@ -67,19 +66,7 @@ export default {
       this.loading = true;
       this.$http.get('/api/v1/win-service/all')
         .then(res => {
-          this.datas = [];
-          for (const item of res) {
-            if (item.PathName) {
-              const path = item.PathName.substring(0, item.PathName.indexOf('.exe'));
-              if (path) {
-                item.PathName2 = path.substring(0, path.lastIndexOf('\\'));
-              } else {
-                item.PathName2 = item.PathName.substring(0, item.PathName.lastIndexOf('\\'));
-              }
-            }
-            this.datas.push(item);
-          }
-          this.searchDatas = this.datas;
+          this.searchDatas = this.datas = res;
           this.selectedItems = this.searchDatas.filter(it => it.selected).map(it => it.Name);
           this.searchHandler();
         })
