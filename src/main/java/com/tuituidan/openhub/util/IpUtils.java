@@ -1,12 +1,16 @@
 package com.tuituidan.openhub.util;
 
+import com.tuituidan.openhub.config.AppPropertiesConfig;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import lombok.experimental.UtilityClass;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -18,10 +22,22 @@ import org.springframework.util.StringUtils;
  * @date 2022/11/4
  */
 @Slf4j
-@UtilityClass
-public class IpUtils {
+@Component
+public class IpUtils implements ApplicationRunner {
 
     private static String localIp = "";
+
+    @Resource
+    private AppPropertiesConfig appPropertiesConfig;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        init(appPropertiesConfig.getLocalIp());
+    }
+
+    private static void init(String configIp) {
+        localIp = configIp;
+    }
 
     /**
      * 获取本机IP.
@@ -77,4 +93,5 @@ public class IpUtils {
     private static boolean isValidAddress(InetAddress address) {
         return address instanceof Inet4Address && address.isSiteLocalAddress() && !address.isLoopbackAddress();
     }
+
 }

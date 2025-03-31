@@ -24,4 +24,6 @@ public class AppPropertiesConfig {
 
     private String cmdListServiceWhere;
 
+    private String localIp;
+
 }
