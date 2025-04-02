@@ -4,7 +4,7 @@
     :visible.sync="visible"
     append-to-body
     :close-on-click-modal="false"
-    width="1000px">
+    width="1200px">
     <div class="search-panel">
       <el-input suffix-icon="el-icon-search"
                 placeholder="输入服务名称或描述进行搜索..."
@@ -25,7 +25,8 @@
               :data="searchDatas">
       <el-table-column align="center" type="selection" width="55"></el-table-column>
       <el-table-column label="序号" align="center" type="index" width="55"></el-table-column>
-      <el-table-column prop="DisplayName" label="服务名称" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="Name" label="服务名称" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="DisplayName" label="显示名称" show-overflow-tooltip></el-table-column>
       <el-table-column prop="Description" label="描述" show-overflow-tooltip></el-table-column>
       <el-table-column prop="PathName" label="执行文件路径" show-overflow-tooltip></el-table-column>
       <el-table-column prop="StartMode" align="center" label="启动类型" show-overflow-tooltip width="100">
