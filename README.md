@@ -11,18 +11,22 @@ github：[https://github.com/tuituidan/windows-manager](https://github.com/tuitu
 
 扩展自【在线IIS管理】一开始只做了IIS在线管理，但考虑很多windows服务也是本地管理，缺少在线管理，所以一并做了，由于命名问题，所以新开了一个仓库。
 
-IIS说明见[github](https://github.com/tuituidan/iis-manager)、[gitee](https://gitee.com/tuituidan/iis-manager)
+IIS管理说明见[github](https://github.com/tuituidan/iis-manager)、[gitee](https://gitee.com/tuituidan/iis-manager)
 
 windows服务管理，通过windows命令获取所有windows服务，通过勾选来添加自己需要默认展示的服务，在线操作服务的启停及文件管理
+
+### 功能说明
+
+- 无数据库，IIS管理直接读取IIS所有网站列表进行管理，windows服务由于自带太多，而实际只需要管理自己创建的一些服务，所以将要管理的服务存入一个win-service.ini的配置文件中，配置文件保存后自动生成的。
+- 可通过`spring.security.enabled=true`开启简单的登录控制，在`springboot`的`yml`配置中配置账号密码（默认账号密码：admin  / admin123）。
+- 从IIS获取的网站列表，可点击地址直接进行跳转访问，默认获取服务器本地IP，但可能受一些代理软件影响，获取到的地址可能不是用户想要的，这种情况可以通过配置`app.local-ip`来配置服务器IP。
+- 实现了IIS网站的在线启停，应用程序池的在线启停和回收，网站部署文件的上传删除预览等。
+- 实现了windows服务的在线启停及部署文件管理。
+- 网站和服务的文件管理通过`codemirror`实现常用文本，如`js`，`css`，`sql`，`html`，`xml`的高亮显示，后续也会考虑实现在线编辑。
 
 ### license
 
 100%开源，MIT协议，可自由修改
-
-### 后续计划
-
-- 更方便的文件管理，如复制粘贴上传，在线解压
-- 文件查看支持代码高亮，在线编辑
 
 #### 演示图
 
