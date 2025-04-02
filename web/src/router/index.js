@@ -59,7 +59,7 @@ export const constantRoutes = [
   },
   {
     path: '/show-file/:path',
-    component: () => import('@/views/site/show-file'),
+    component: () => import('@/views/show-file'),
     hidden: true
   },
 ]

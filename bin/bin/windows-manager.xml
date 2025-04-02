@@ -1,0 +1,12 @@
+<service>
+    <id>windows-manager</id>
+    <name>windows-manager</name>
+    <description>用于在线管理IIS和Windows服务</description>
+    <workingdirectory>%BASE%\</workingdirectory>
+    <logpath>%BASE%\logs</logpath>
+    <logmode>rotate</logmode>
+    <startmode>Automatic</startmode>
+
+    <executable>java</executable>
+    <arguments> -server -jar windows-manager.jar</arguments>
+</service>
