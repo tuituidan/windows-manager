@@ -28,6 +28,12 @@ windows服务管理，通过windows命令获取所有windows服务，通过勾�
 
 100%开源，MIT协议，可自由修改
 
+### 部署说明
+
+直接从[Release](https://github.com/tuituidan/windows-manager/releases)中下载`windows-manager.zip`压缩包，解压后执行`java -jar windows-manager.jar`即可，也可通过执行压缩包中提供的`install.bat`将本服务部署到windows服务中，通过windows服务进行管理。
+
+> 注意：因为需要执行windows命令获取IIS及windows服务，所以启动命令需要Windows管理员权限，idea进行开发调试时也需要使用管理员权限启动。
+
 #### 演示图
 
 IIS在线管理
