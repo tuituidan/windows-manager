@@ -59,7 +59,8 @@ public class IpUtils implements ApplicationRunner {
                 while (inetAddrs.hasMoreElements()) {
                     InetAddress inetAddr = inetAddrs.nextElement();
                     if (isValidAddress(inetAddr)) {
-                        return inetAddr.getHostAddress();
+                        localIp =  inetAddr.getHostAddress();
+                        return localIp;
                     }
                 }
             }
