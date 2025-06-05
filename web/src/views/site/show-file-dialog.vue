@@ -62,13 +62,18 @@
                :filter-node-method="treeFilterNode"
                lazy>
         <div slot-scope="{ node, data }" style="display: flex;width: 100%;justify-content: space-between">
-          <el-link :icon="node.isLeaf?'el-icon-document':'el-icon-folder'"
-                   :underline="false">{{ node.label }}
+          <el-link :underline="false">
+            <i v-if="data.type==='folder'" class="el-icon-folder el-icon--left"></i>
+            <i v-else-if="data.type==='img'" class="el-icon-picture-outline el-icon--left"></i>
+            <i v-else-if="data.type==='txt'" class="el-icon-document el-icon--left"></i>
+            <i v-else class="el-icon-tickets el-icon--left"></i>
+            {{ node.label }}
           </el-link>
           <div>
             <span v-if="node.isLeaf" v-text="data.fileSize" style="padding-right: 10px"></span>
             <span v-if="node.isLeaf" v-text="data.lastModifyTime" style="padding-right: 10px"></span>
             <el-button v-if="node.isLeaf"
+                       :disabled="!(data.type==='txt' || data.type==='img' || data.type==='browser')"
                        type="text" size="small"
                        @click="showFileHandler(data)">查看
             </el-button>
@@ -80,6 +85,13 @@
         </div>
       </el-tree>
     </div>
+
+    <el-image
+      ref="imagePreview"
+      v-show="false"
+      :src="imgPreview.url"
+      :preview-src-list="imgPreview.urlList"
+    ></el-image>
   </el-dialog>
 </template>
 
@@ -95,6 +107,10 @@ export default {
       filterText: '',
       props: {
         isLeaf: 'leaf'
+      },
+      imgPreview: {
+        url: '',
+        urlList: []
       },
       fileUploadUrl: `${process.env.VUE_APP_BASE_API}/api/v1/file/actions/upload`,
     }
@@ -161,11 +177,26 @@ export default {
         });
     },
     downloadHander(data) {
-      window.open(`${process.env.VUE_APP_BASE_API}/api/v1/file/action/download?path=${encodeURIComponent(data.path)}`);
+      window.open(this.downloadUrl('download', data.path), '_blank');
     },
     showFileHandler(data) {
-      const url = this.$router.resolve({path: `/show-file/${encodeURIComponent(data.path)}`})
-      window.open(url.href, '_blank')
+      if (data.type === 'img') {
+        this.imgPreview.url = this.downloadUrl('download', data.path);
+        this.imgPreview.urlList = [this.imgPreview.url];
+        this.$refs.imagePreview.showViewer = true;
+        return;
+      }
+      if (data.type === 'txt') {
+        const url = this.$router.resolve({path: `/show-file/${encodeURIComponent(data.path)}`});
+        window.open(url.href, '_blank')
+        return;
+      }
+      if (data.type === 'browser') {
+        window.open(this.downloadUrl('preview', data.path), '_blank');
+      }
+    },
+    downloadUrl(type, path) {
+      return `${process.env.VUE_APP_BASE_API}/api/v1/file/action/${type}?path=${encodeURIComponent(path)}`;
     },
   }
 }

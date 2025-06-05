@@ -13,6 +13,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -26,6 +27,23 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  */
 @UtilityClass
 public class ResponseUtils {
+
+    /**
+     * 文件预览.
+     *
+     * @param fileName fileName
+     * @param inputStream inputStream
+     */
+    public static void preview(String fileName, InputStream inputStream) {
+        MediaType mediaType = MediaTypeFactory.getMediaType(fileName).orElse(MediaType.APPLICATION_OCTET_STREAM);
+        HttpServletResponse response = getHttpResponse();
+        response.setContentType(mediaType.toString());
+        try (InputStream in = inputStream; OutputStream outputStream = response.getOutputStream()) {
+            IOUtils.copy(in, outputStream);
+        } catch (IOException ex) {
+            throw new ResourceAccessException("下载失败", ex);
+        }
+    }
 
     /**
      * 文件下载.

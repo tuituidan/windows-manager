@@ -24,5 +24,8 @@ public class FileData {
 
     private String lastModifyTime;
 
+    private String type;
+
     private Boolean leaf;
+
 }

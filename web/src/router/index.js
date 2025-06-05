@@ -55,6 +55,12 @@ export const constantRoutes = [
         name: 'windows-service',
         meta: {title: 'Windows服务', icon: 'dashboard'}
       },
+      {
+        path: 'setting',
+        component: () => import('@/views/setting'),
+        name: 'setting',
+        meta: {title: '系统设置', icon: 'dashboard'}
+      },
     ]
   },
   {

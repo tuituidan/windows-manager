@@ -475,3 +475,30 @@ export function tansParams(params) {
 export function blobValidate(data) {
   return data.type !== 'application/json'
 }
+
+
+export function camelToKebab(obj) {
+  const func = str => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  if (typeof obj !== 'object' || obj === null) return obj
+  if (Array.isArray(obj)) return obj.map(item => camelToKebab(item))
+
+  const newObj = {}
+  for (const key in obj) {
+    const newKey = func(key)
+    newObj[newKey] = camelToKebab(obj[key])
+  }
+  return newObj
+}
+
+export function kebabToCamel(obj) {
+  const func = str => str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  if (typeof obj !== 'object' || obj === null) return obj
+  if (Array.isArray(obj)) return obj.map(item => kebabToCamel(item))
+
+  const newObj = {}
+  for (const key in obj) {
+    const newKey = func(key)
+    newObj[newKey] = kebabToCamel(obj[key])
+  }
+  return newObj
+}

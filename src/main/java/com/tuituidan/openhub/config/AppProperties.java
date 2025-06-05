@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.config;
 
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "app")
-public class AppPropertiesConfig {
+public class AppProperties {
 
     private String cmdStartService;
 
@@ -24,6 +25,6 @@ public class AppPropertiesConfig {
 
     private String cmdListServiceWhere;
 
-    private String localIp;
+    private Map<String, String> fileExt;
 
 }

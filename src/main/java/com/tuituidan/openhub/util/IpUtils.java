@@ -1,15 +1,11 @@
 package com.tuituidan.openhub.util;
 
-import com.tuituidan.openhub.config.AppPropertiesConfig;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -23,20 +19,17 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Component
-public class IpUtils implements ApplicationRunner {
+public class IpUtils {
 
     private static String localIp = "";
 
-    @Resource
-    private AppPropertiesConfig appPropertiesConfig;
-
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        init(appPropertiesConfig.getLocalIp());
-    }
-
-    private static void init(String configIp) {
-        localIp = configIp;
+    /**
+     * 设置本机IP.
+     *
+     * @param ip ip
+     */
+    public static void setLocalIp(String ip) {
+        localIp = ip;
     }
 
     /**
@@ -59,7 +52,7 @@ public class IpUtils implements ApplicationRunner {
                 while (inetAddrs.hasMoreElements()) {
                     InetAddress inetAddr = inetAddrs.nextElement();
                     if (isValidAddress(inetAddr)) {
-                        localIp =  inetAddr.getHostAddress();
+                        localIp = inetAddr.getHostAddress();
                         return localIp;
                     }
                 }
@@ -81,7 +74,13 @@ public class IpUtils implements ApplicationRunner {
      * @throws SocketException Socket异常
      */
     private static boolean isValidInterface(NetworkInterface ni) throws SocketException {
-        return !ni.isLoopback() && !ni.isPointToPoint() && ni.isUp() && !ni.isVirtual()
+        return !ni.isLoopback()
+                && !ni.isPointToPoint()
+                && ni.isUp()
+                && !ni.isVirtual()
+                && !ni.getName().contains("docker")
+                && !ni.getName().contains("br-")
+                && !ni.getDisplayName().contains("VM")
                 && (ni.getName().startsWith("eth") || ni.getName().startsWith("ens"));
     }
 
@@ -92,7 +91,11 @@ public class IpUtils implements ApplicationRunner {
      * @return boolean
      */
     private static boolean isValidAddress(InetAddress address) {
-        return address instanceof Inet4Address && address.isSiteLocalAddress() && !address.isLoopbackAddress();
+        return address instanceof Inet4Address
+                && address.isSiteLocalAddress()
+                && !address.isLoopbackAddress()
+                && !address.isMulticastAddress()
+                && !address.isLinkLocalAddress();
     }
 
 }

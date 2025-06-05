@@ -1,7 +1,7 @@
 package com.tuituidan.openhub.service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.config.AppProperties;
 import com.tuituidan.openhub.util.StringExtUtils;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 public class WindowsService {
 
     @Resource
-    private AppPropertiesConfig appProperties;
+    private AppProperties appProperties;
 
     /**
      * getNames

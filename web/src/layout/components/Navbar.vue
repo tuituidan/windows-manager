@@ -9,6 +9,7 @@
       active-text-color="#ffd04b">
       <el-menu-item index="/">IIS管理</el-menu-item>
       <el-menu-item index="/win-service">服务管理</el-menu-item>
+      <el-menu-item index="/setting">系统设置</el-menu-item>
     </el-menu>
   </div>
 </template>

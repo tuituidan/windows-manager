@@ -32,6 +32,10 @@ app:
   cmd-start-service: net {} "{}"
   cmd-list-service: wmic service get Name,DisplayName,Description,PathName,StartMode,State,StartName /format:list
   cmd-list-service-where: wmic service where "{}" get Name,DisplayName,Description,PathName,StartMode,State,StartName /format:list
+  file-ext:
+    file-ext-txt: '*.config,*.txt,*.log,*.ini,*.md,*.json,*.xml,*.cshtml,*.html,*.htm,*.js,*.css'
+    file-ext-img: '*.jpg,*.jpeg,*.png,*.gif,*.bmp'
+    file-ext-browser: '*.pdf,*.mp3,*.mp4'
 
 project:
   version: @project.version@

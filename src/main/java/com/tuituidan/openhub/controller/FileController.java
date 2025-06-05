@@ -1,6 +1,8 @@
 package com.tuituidan.openhub.controller;
 
 import com.tuituidan.openhub.bean.file.FileData;
+import com.tuituidan.openhub.service.SettingService;
+import com.tuituidan.openhub.util.FileNameValidator;
 import com.tuituidan.openhub.util.ResponseUtils;
 import com.tuituidan.openhub.util.StringExtUtils;
 import com.tuituidan.openhub.util.ZipUtils;
@@ -12,15 +14,20 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +46,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1")
 public class FileController {
+
+    @Resource
+    private SettingService settingService;
 
     /**
      * fileUpload
@@ -72,6 +82,21 @@ public class FileController {
                 FileUtils.forceDelete(file);
             }
         }
+    }
+
+    /**
+     * downloadFile
+     *
+     * @param path path
+     * @throws IOException ex
+     */
+    @GetMapping("/file/action/preview")
+    public void previewFile(String path) throws IOException {
+        File file = new File(path);
+        Assert.isTrue(file.exists(), "路径错误，文件不存在");
+        Assert.isTrue(file.isFile(), "这不是一个文件");
+        Assert.isTrue(file.length() > 0, "这是一个空文件");
+        ResponseUtils.preview(file.getName(), new FileInputStream(path));
     }
 
     /**
@@ -119,9 +144,18 @@ public class FileController {
         if (files == null) {
             return Collections.emptyList();
         }
+        Properties properties = settingService.getSetting();
+        List<Pair<String, String>> fileExtList = new ArrayList<>();
+        for (Entry<Object, Object> entry : properties.entrySet()) {
+            String key = entry.getKey().toString();
+            if (StringUtils.startsWith(key, "file-ext")) {
+                fileExtList.add(Pair.of(entry.getValue().toString(), StringUtils.remove(key, "file-ext-")));
+            }
+        }
         return Arrays.stream(files).map(file -> new FileData()
                         .setLabel(file.getName())
                         .setPath(file.getPath())
+                        .setType(getFileType(file, fileExtList))
                         .setFileSize(FileUtils.byteCountToDisplaySize(file.length()))
                         .setLastModifyTime(LocalDateTime
                                 .ofInstant(Instant.ofEpochMilli(file.lastModified()), ZoneId.systemDefault())
@@ -130,6 +164,18 @@ public class FileController {
                 .sorted(Comparator.comparing(FileData::getLeaf)
                         .thenComparing(FileData::getLabel, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
+    }
+
+    private String getFileType(File file, List<Pair<String, String>> fileExtList) {
+        if (file.isDirectory()) {
+            return "folder";
+        }
+        for (Pair<String, String> pair : fileExtList) {
+            if (FileNameValidator.validate(file.getName(), pair.getKey())) {
+                return pair.getValue();
+            }
+        }
+        return "file";
     }
 
 }
