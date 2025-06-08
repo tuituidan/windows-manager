@@ -27,7 +27,12 @@ export default {
     loadContent() {
       this.$http.get(`/api/v1/file/action/show?path=${encodeURIComponent(this.$route.params.path)}`)
         .then(res => {
-          this.code = res;
+          // 有些json会自动转对象
+          if (typeof res === 'string') {
+            this.code = res;
+          } else {
+            this.code = JSON.stringify(res);
+          }
         })
         .catch(err => {
           console.error(err);
