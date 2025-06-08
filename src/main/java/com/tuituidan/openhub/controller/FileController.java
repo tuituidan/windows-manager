@@ -69,6 +69,16 @@ public class FileController {
     }
 
     /**
+     * fileUnzip
+     *
+     * @param fileData fileData
+     */
+    @PostMapping("/file/actions/unzip")
+    public void fileUnzip(@RequestBody FileData fileData) {
+        ZipUtils.unzip(fileData.getPath());
+    }
+
+    /**
      * deleteFiles
      *
      * @param paths paths
@@ -169,6 +179,9 @@ public class FileController {
     private String getFileType(File file, List<Pair<String, String>> fileExtList) {
         if (file.isDirectory()) {
             return "folder";
+        }
+        if (StringUtils.endsWithIgnoreCase(file.getName(), ".zip")) {
+            return "zip";
         }
         for (Pair<String, String> pair : fileExtList) {
             if (FileNameValidator.validate(file.getName(), pair.getKey())) {

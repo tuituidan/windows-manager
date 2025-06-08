@@ -61,7 +61,22 @@ public class ZipUtils {
         } catch (Exception ex) {
             throw new IllegalArgumentException("解压失败", ex);
         }
-
     }
 
+    /**
+     * 解压文件
+     *
+     * @param zipPath zipPath
+     */
+    public static void unzip(String zipPath) {
+        try {
+            try (ZipFile zipFile = new ZipFile(zipPath)) {
+                zipFile.setCharset(CHARSET_GBK);
+                Assert.isTrue(zipFile.isValidZipFile(), "请上传ZIP文件");
+                zipFile.extractAll(new File(zipPath).getParent());
+            }
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("解压失败", ex);
+        }
+    }
 }

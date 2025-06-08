@@ -75,9 +75,9 @@
             <span v-if="node.isLeaf" v-text="data.fileSize" style="padding-right: 10px"></span>
             <span v-if="node.isLeaf" v-text="data.lastModifyTime" style="padding-right: 10px"></span>
             <el-button v-if="node.isLeaf"
-                       :disabled="!(data.type==='txt' || data.type==='img' || data.type==='browser')"
+                       :disabled="!operateFileExt.includes(data.type)"
                        type="text" size="small"
-                       @click="showFileHandler(data)">查看
+                       @click="showFileHandler(data)" v-text="data.type==='zip'?'解压':'查看'">
             </el-button>
             <el-button type="text"
                        size="small"
@@ -107,6 +107,7 @@ export default {
       uploadPath: '',
       rootPath: '',
       filterText: '',
+      operateFileExt: ['txt', 'img', 'browser', 'zip'],
       props: {
         isLeaf: 'leaf'
       },
@@ -134,7 +135,7 @@ export default {
       if (!value) return true;
       return data.label.toLowerCase().indexOf(value.toLowerCase()) !== -1;
     },
-    handlePaste(event){
+    handlePaste(event) {
       const files = event.clipboardData && event.clipboardData.files;
       if (!(files && files.length)) {
         this.$modal.msgError('未获取到需要粘贴的文件，确保您已进行文件复制操作，且浏览器支持粘贴上传，否则请点击上面的文件上传按钮进行上传！');
@@ -206,6 +207,13 @@ export default {
       }
       if (data.type === 'browser') {
         window.open(this.downloadUrl('preview', data.path), '_blank');
+        return;
+      }
+      if (data.type === 'zip') {
+        this.$http.post('/api/v1/file/actions/unzip', data).then(() => {
+          this.$modal.msgSuccess('解压成功');
+          this.reloadTree();
+        })
       }
     },
     downloadUrl(type, path) {
