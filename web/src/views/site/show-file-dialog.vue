@@ -6,12 +6,12 @@
     :close-on-click-modal="false"
     width="800px">
     <div>
-      <div style="padding-bottom: 15px">当前上传路径：{{ parentPath }}</div>
+      <div style="padding-bottom: 15px">当前上传路径：{{ uploadPath }}</div>
       <el-row>
         <el-col :span="2.5">
           <el-tooltip content="上传zip压缩包并自动解压文件">
             <el-upload :action="fileUploadUrl"
-                       :data="{zip:true, parentPath:parentPath}"
+                       :data="{zip:true, uploadPath:uploadPath}"
                        :show-file-list="false"
                        :on-success="uploadSuccess">
               <el-button size="mini" type="success" plain>上传压缩包</el-button>
@@ -20,8 +20,9 @@
         </el-col>
         <el-col :span="2.5" :offset="1">
           <el-tooltip content="直接替换上传文件">
-            <el-upload :action="fileUploadUrl"
-                       :data="{parentPath:parentPath}"
+            <el-upload ref="uploader"
+                       :action="fileUploadUrl"
+                       :data="{uploadPath:uploadPath}"
                        :show-file-list="false"
                        :on-success="uploadSuccess"
                        multiple>
@@ -60,6 +61,7 @@
                :load="loadNode"
                @current-change="treeCurrentChange"
                :filter-node-method="treeFilterNode"
+               @paste.native="handlePaste"
                lazy>
         <div slot-scope="{ node, data }" style="display: flex;width: 100%;justify-content: space-between">
           <el-link :underline="false">
@@ -102,7 +104,7 @@ export default {
     return {
       visible: false,
       rootNode: null,
-      parentPath: '',
+      uploadPath: '',
       rootPath: '',
       filterText: '',
       props: {
@@ -123,14 +125,25 @@ export default {
   methods: {
     treeCurrentChange(data) {
       if (data.leaf) {
-        this.parentPath = data.path.substring(0, data.path.lastIndexOf('\\'));
+        this.uploadPath = data.path.substring(0, data.path.lastIndexOf('\\'));
       } else {
-        this.parentPath = data.path;
+        this.uploadPath = data.path;
       }
     },
     treeFilterNode(value, data) {
       if (!value) return true;
       return data.label.toLowerCase().indexOf(value.toLowerCase()) !== -1;
+    },
+    handlePaste(event){
+      const files = event.clipboardData && event.clipboardData.files;
+      if (!(files && files.length)) {
+        this.$modal.msgError('未获取到需要粘贴的文件，确保您已进行文件复制操作，且浏览器支持粘贴上传，否则请点击上面的文件上传按钮进行上传！');
+        return;
+      }
+      for (const file of files) {
+        this.$refs.uploader.handleStart(file);
+      }
+      this.$refs.uploader.submit();
     },
     open(path) {
       this.rootPath = path;
@@ -149,7 +162,7 @@ export default {
     },
     refreshTree() {
       this.reloadTree();
-      this.parentPath = this.rootPath;
+      this.uploadPath = this.rootPath;
     },
     reloadTree() {
       if (this.rootNode) {

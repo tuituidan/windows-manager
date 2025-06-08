@@ -54,17 +54,17 @@ public class FileController {
      * fileUpload
      *
      * @param file file
-     * @param parentPath parentPath
+     * @param uploadPath uploadPath
      * @param zip zip
      * @throws IOException Exception
      */
     @PostMapping("/file/actions/upload")
-    public void fileUpload(MultipartFile file, String parentPath, Boolean zip) throws IOException {
+    public void fileUpload(MultipartFile file, String uploadPath, Boolean zip) throws IOException {
         if (BooleanUtils.isTrue(zip)) {
-            ZipUtils.unzip(file.getInputStream(), parentPath);
+            ZipUtils.unzip(file.getInputStream(), uploadPath);
         } else {
             FileUtils.copyInputStreamToFile(file.getInputStream(),
-                    new File(parentPath + File.separator + file.getOriginalFilename()));
+                    new File(uploadPath + File.separator + file.getOriginalFilename()));
         }
     }
 
