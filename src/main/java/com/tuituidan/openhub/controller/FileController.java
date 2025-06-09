@@ -149,7 +149,7 @@ public class FileController {
      * @return List
      */
     @GetMapping("/site/files")
-    public List<FileData> loadFileData(String rootPath, String path) {
+    public List<FileData> loadFileData(String rootPath, String path, Boolean showHiddenFile) {
         File[] files = new File(StringUtils.isNotBlank(path) ? path : rootPath).listFiles();
         if (files == null) {
             return Collections.emptyList();
@@ -162,7 +162,8 @@ public class FileController {
                 fileExtList.add(Pair.of(entry.getValue().toString(), StringUtils.remove(key, "file-ext-")));
             }
         }
-        return Arrays.stream(files).map(file -> new FileData()
+        return Arrays.stream(files).filter(it -> (BooleanUtils.isTrue(showHiddenFile)
+                        || !it.isHidden())).map(file -> new FileData()
                         .setLabel(file.getName())
                         .setPath(file.getPath())
                         .setType(getFileType(file, fileExtList))

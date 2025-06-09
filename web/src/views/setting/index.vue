@@ -10,6 +10,15 @@
         </span>
         <el-input v-model="form.localIp"></el-input>
       </el-form-item>
+      <el-form-item label="显示隐藏文件" prop="showHiddenFile">
+        <span slot="label">
+          <el-tooltip content='设置部署文件查看默认是否显示隐藏文件'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+          显示隐藏文件
+        </span>
+        <el-checkbox v-model="form.showHiddenFile"></el-checkbox>
+      </el-form-item>
       <el-divider content-position="left">配置可在线预览的文件</el-divider>
       <el-form-item label="图片预览" prop="fileExtImg">
         <span slot="label">
@@ -55,6 +64,7 @@ export default {
       loading: false,
       form: {
         localIp: '',
+        showHiddenFile: false,
         fileExtImg: '',
         fileExtTxt: '',
         fileExtBrowser: '',
@@ -79,7 +89,9 @@ export default {
     init() {
       this.$http.get('/api/v1/setting')
         .then(res => {
-          this.form = kebabToCamel(res);
+          const result = kebabToCamel(res);
+          result.showHiddenFile = result.showHiddenFile === 'true';
+          this.form = result;
         })
         .catch(err => {
           console.error(err.response);

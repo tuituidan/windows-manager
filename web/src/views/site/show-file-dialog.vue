@@ -38,6 +38,9 @@
         <el-col :span="2.5" :offset="1">
           <el-button type="primary" size="mini" plain @click="refreshTree">重新加载</el-button>
         </el-col>
+        <el-col :span="2.5" :offset="1">
+          <el-checkbox v-model="showHiddenFile" @change="refreshTree">显示隐藏文件</el-checkbox>
+        </el-col>
       </el-row>
       <el-row style="margin-top: 10px">
         <el-col :span="23">
@@ -103,6 +106,7 @@ export default {
   data() {
     return {
       visible: false,
+      showHiddenFile: false,
       rootNode: null,
       uploadPath: '',
       rootPath: '',
@@ -123,7 +127,16 @@ export default {
       this.$refs.fileTree.filter(val);
     }
   },
+  mounted() {
+    this.initSetting();
+  },
   methods: {
+    initSetting() {
+      this.$http.get('/api/v1/setting')
+        .then(res => {
+          this.showHiddenFile = res['show-hidden-file'] === 'true';
+        })
+    },
     treeCurrentChange(data) {
       if (data.leaf) {
         this.uploadPath = data.path.substring(0, data.path.lastIndexOf('\\'));
@@ -156,7 +169,7 @@ export default {
         this.rootNode = node;
       }
       const path = node.data ? encodeURIComponent(node.data.path) : '';
-      this.$http.get(`/api/v1/site/files?rootPath=${encodeURIComponent(this.rootPath)}&path=${path}`)
+      this.$http.get(`/api/v1/site/files?rootPath=${encodeURIComponent(this.rootPath)}&path=${path}&showHiddenFile=${this.showHiddenFile}`)
         .then(res => {
           return resolve(res);
         })
