@@ -13,6 +13,7 @@
             <el-upload :action="fileUploadUrl"
                        :data="{zip:true, uploadPath:uploadPath}"
                        :show-file-list="false"
+                       :before-upload="beforeUpload"
                        :on-success="uploadSuccess">
               <el-button size="mini" type="success" plain>上传压缩包</el-button>
             </el-upload>
@@ -24,6 +25,7 @@
                        :action="fileUploadUrl"
                        :data="{uploadPath:uploadPath}"
                        :show-file-list="false"
+                       :before-upload="beforeUpload"
                        :on-success="uploadSuccess"
                        multiple>
               <el-button size="mini" type="success" plain>上传文件</el-button>
@@ -51,7 +53,7 @@
           </el-input>
         </el-col>
         <el-col :span="1">
-          <el-tooltip content="当前为懒加载树，未展开的节点无法搜索到">
+          <el-tooltip content="当前为懒加载树，未展开的节点无法搜索到，选中树节点支持复制粘贴上传文件到对应目录">
             <i class="el-icon-warning-outline"></i>
           </el-tooltip>
         </el-col>
@@ -184,8 +186,13 @@ export default {
         this.rootNode.expand();
       }
     },
+    beforeUpload(){
+      this.$modal.loading('文件上传中...');
+      return true;
+    },
     uploadSuccess() {
       this.$modal.msgSuccess('上传成功');
+      this.$modal.closeLoading();
       this.reloadTree();
     },
     fileDeleteHandler() {
