@@ -10,7 +10,7 @@ export default {
   name: "App",
   metaInfo() {
     return {
-      title: this.$store.state.settings.title,
+      title: this.$route?.meta?.title || 'Windows服务管理',
     }
   }
 };

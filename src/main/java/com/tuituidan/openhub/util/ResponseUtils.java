@@ -35,9 +35,7 @@ public class ResponseUtils {
      * @param inputStream inputStream
      */
     public static void preview(String fileName, InputStream inputStream) {
-        MediaType mediaType = MediaTypeFactory.getMediaType(fileName).orElse(MediaType.APPLICATION_OCTET_STREAM);
-        HttpServletResponse response = getHttpResponse();
-        response.setContentType(mediaType.toString());
+        HttpServletResponse response = getHttpResponse("inline", fileName);
         try (InputStream in = inputStream; OutputStream outputStream = response.getOutputStream()) {
             IOUtils.copy(in, outputStream);
         } catch (IOException ex) {
@@ -53,7 +51,7 @@ public class ResponseUtils {
      */
     public static void download(String fileName, InputStream inputStream) {
         try (InputStream in = inputStream;
-                OutputStream outputStream = getHttpResponse(fileName).getOutputStream()) {
+                OutputStream outputStream = getHttpResponse("attachment", fileName).getOutputStream()) {
             IOUtils.copy(in, outputStream);
         } catch (IOException ex) {
             throw new ResourceAccessException("下载失败", ex);
@@ -67,7 +65,7 @@ public class ResponseUtils {
      * @param files files
      */
     public static void batchDownload(String fileName, Map<String, InputStream> files) {
-        try (ZipOutputStream zipOut = new ZipOutputStream(getHttpResponse(fileName).getOutputStream())) {
+        try (ZipOutputStream zipOut = new ZipOutputStream(getHttpResponse("attachment", fileName).getOutputStream())) {
             for (Map.Entry<String, InputStream> entry : files.entrySet()) {
                 zipOut.putNextEntry(new ZipEntry(entry.getKey()));
                 try (InputStream in = entry.getValue()) {
@@ -85,13 +83,14 @@ public class ResponseUtils {
      * @param fileName fileName
      * @return HttpServletResponse
      */
-    public static HttpServletResponse getHttpResponse(String fileName) {
+    public static HttpServletResponse getHttpResponse(String type, String fileName) {
         HttpServletResponse response = getHttpResponse();
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setContentType(MediaTypeFactory.getMediaType(fileName)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM).toString());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         fileName = fileName.replaceAll("\\s*", "");
         fileName = StringExtUtils.urlEncode(fileName);
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename*=utf-8''" + fileName);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, type + ";filename*=utf-8''" + fileName);
         return response;
     }
 

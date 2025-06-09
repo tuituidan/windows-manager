@@ -47,7 +47,7 @@ export const constantRoutes = [
         path: '',
         component: () => import('@/views/site'),
         name: 'Index',
-        meta: {title: '首页', icon: 'dashboard', affix: true}
+        meta: {title: 'IIS管理', icon: 'dashboard', affix: true}
       },
       {
         path: 'win-service',
@@ -66,7 +66,8 @@ export const constantRoutes = [
   {
     path: '/show-file/:path',
     component: () => import('@/views/show-file'),
-    hidden: true
+    hidden: true,
+    meta: {title: '文件查看', icon: 'dashboard'}
   },
 ]
 
