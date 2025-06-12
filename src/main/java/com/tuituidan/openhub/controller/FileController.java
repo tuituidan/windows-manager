@@ -1,6 +1,7 @@
 package com.tuituidan.openhub.controller;
 
 import com.tuituidan.openhub.bean.file.FileData;
+import com.tuituidan.openhub.bean.file.FilePage;
 import com.tuituidan.openhub.service.SettingService;
 import com.tuituidan.openhub.util.FileNameValidator;
 import com.tuituidan.openhub.util.ResponseUtils;
@@ -9,6 +10,7 @@ import com.tuituidan.openhub.util.ZipUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -140,6 +143,35 @@ public class FileController {
     @GetMapping("/file/action/show")
     public String showFileContent(String path) throws IOException {
         return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * showFileContent
+     *
+     * @param position position
+     * @param size size
+     * @param path path
+     */
+    @GetMapping("/file/{position}/{size}/action/page")
+    public FilePage showFileContent(@PathVariable String position, @PathVariable Integer size, String path) {
+        try (RandomAccessFile raf = new RandomAccessFile(path, "r")) {
+            raf.seek(Long.parseLong(position));
+            int index = 0;
+            StringBuilder sb = new StringBuilder();
+            for (; index < size; index++) {
+                String line = raf.readLine();
+                if (line == null) {
+                    break;
+                }
+                sb.append(new String(line.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)).append("\n");
+            }
+            return new FilePage()
+                    .setData(sb.toString())
+                    .setPosition(String.valueOf(raf.getFilePointer()))
+                    .setHasMore(index == size);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("读取错误", ex);
+        }
     }
 
     /**
